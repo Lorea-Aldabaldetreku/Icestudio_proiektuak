@@ -12,21 +12,6 @@
     "graph": {
       "blocks": [
         {
-          "id": "5ab4edc5-ffab-4712-85ab-6526f91a24c5",
-          "type": "basic.info",
-          "data": {
-            "info": "4 digitudun kronometroa resetarekin eta ordularia gelditzeko eta berrearazteko botoiarekin (stop)"
-          },
-          "position": {
-            "x": -464,
-            "y": -80
-          },
-          "size": {
-            "width": 880,
-            "height": 80
-          }
-        },
-        {
           "id": "cb11e83c-137d-486f-ad5b-8440e60021e5",
           "type": "basic.constant",
           "data": {
@@ -35,8 +20,8 @@
             "local": false
           },
           "position": {
-            "x": 456,
-            "y": -72
+            "x": -80,
+            "y": -120
           }
         },
         {
@@ -44,38 +29,19 @@
           "type": "basic.constant",
           "data": {
             "name": "M",
-            "value": "12_000_000",
+            "value": "1_200_000",
             "local": false
           },
           "position": {
-            "x": 96,
-            "y": 8
+            "x": -400,
+            "y": -112
           }
         },
         {
-          "id": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
-          "type": "basic.input",
-          "data": {
-            "name": "clk",
-            "pins": [
-              {
-                "index": "0",
-                "name": "CLK",
-                "value": "21"
-              }
-            ],
-            "virtual": false
-          },
-          "position": {
-            "x": -88,
-            "y": 24
-          }
-        },
-        {
-          "id": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
+          "id": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
           "type": "basic.code",
           "data": {
-            "code": "// 4 biteko zenbatzailea\n\nreg [3:0] counter = 0;\nreg hasi = 0;\n\nalways @(posedge clk) begin\n   if (counter == MAX) begin\n     counter <= 0;\n     hasi <= 1;\n     end\n   else if (rst ==1) begin\n     counter <= counter+1;\n     hasi <= 0;\n     end\n   \n   if (rst==0) begin\n   counter <= 0;\n     hasi <= 1;\n    end\n    if (pause) begin\n   counter <= counter;\n     hasi <= 0;\n    end\n    end\n\n assign {z3, z2, z1, z0} = counter;\n assign has = hasi;",
+            "code": "// 4 biteko zenbatzailea \n// reset eta pause funtzioak\nreg coun = 0;\nreg counpause = 0;\nreg hasi = 0;\n\nalways @(posedge clk) begin\n    if (rst==0) begin\n     coun<= 0;\n     counpause <= 0;\n     hasi <= 1;\n   end\n   if ((pause==0) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= 0;\n     hasi <= 1;\n   end\n   else if ((pause==0) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= coun+1;\n     hasi <= 0;\n   end\n    if ((pause==1) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= counpause;\n     hasi <= 1;\n   end\n   else if ((pause==1) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= counpause;\n     hasi <= 0;\n   end\n  end\n \n assign has = hasi;\n",
             "params": [
               {
                 "name": "MAX"
@@ -95,6 +61,91 @@
               ],
               "out": [
                 {
+                  "name": "coun",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "counpause",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "has"
+                }
+              ]
+            }
+          },
+          "position": {
+            "x": -232,
+            "y": 0
+          },
+          "size": {
+            "width": 400,
+            "height": 224
+          }
+        },
+        {
+          "id": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
+          "type": "basic.input",
+          "data": {
+            "name": "clk",
+            "pins": [
+              {
+                "index": "0",
+                "name": "CLK",
+                "value": "21"
+              }
+            ],
+            "virtual": false
+          },
+          "position": {
+            "x": -704,
+            "y": 8
+          }
+        },
+        {
+          "id": "61019820-0dc8-4428-ace0-52b26d1485be",
+          "type": "8f9fee0d3423a9b8febade3a93297f29e5e9da4a",
+          "position": {
+            "x": -400,
+            "y": 8
+          },
+          "size": {
+            "width": 96,
+            "height": 64
+          }
+        },
+        {
+          "id": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
+          "type": "basic.code",
+          "data": {
+            "code": "// Multiplexorea \n// pause funtzioa\nreg [3:0] bal;\n\nalways @(posedge clk) begin\n if (rst ==0) \n bal = c;\n else if (pause ==0) \n        bal = c;\n else if (pause ==1)\n      bal = cp;\n    \nend\n\nassign {z3, z2, z1, z0} = bal;",
+            "params": [],
+            "ports": {
+              "in": [
+                {
+                  "name": "c",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "cp",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "pause"
+                },
+                {
+                  "name": "rst"
+                },
+                {
+                  "name": "clk"
+                }
+              ],
+              "out": [
+                {
                   "name": "z0"
                 },
                 {
@@ -105,16 +156,13 @@
                 },
                 {
                   "name": "z3"
-                },
-                {
-                  "name": "has"
                 }
               ]
             }
           },
           "position": {
-            "x": 304,
-            "y": 56
+            "x": 328,
+            "y": 48
           },
           "size": {
             "width": 400,
@@ -125,7 +173,7 @@
           "id": "cbf6c487-d3ff-4c70-9709-3258b67ebc8f",
           "type": "903e23d5d0f911df7bf3e4317d3833c225d577da",
           "position": {
-            "x": 1144,
+            "x": 1296,
             "y": 80
           },
           "size": {
@@ -153,24 +201,12 @@
             }
           },
           "position": {
-            "x": -536,
+            "x": -1024,
             "y": 88
           },
           "size": {
             "width": 384,
             "height": 256
-          }
-        },
-        {
-          "id": "61019820-0dc8-4428-ace0-52b26d1485be",
-          "type": "8f9fee0d3423a9b8febade3a93297f29e5e9da4a",
-          "position": {
-            "x": 96,
-            "y": 120
-          },
-          "size": {
-            "width": 96,
-            "height": 64
           }
         },
         {
@@ -189,7 +225,7 @@
             "clock": false
           },
           "position": {
-            "x": -712,
+            "x": -1200,
             "y": 184
           }
         },
@@ -216,25 +252,12 @@
           "id": "2003a476-5b9d-453d-a3f0-311a2e452485",
           "type": "903e23d5d0f911df7bf3e4317d3833c225d577da",
           "position": {
-            "x": 1144,
-            "y": 296
+            "x": 1272,
+            "y": 280
           },
           "size": {
             "width": 96,
             "height": 192
-          }
-        },
-        {
-          "id": "f0adab5b-ba32-4e6d-bf54-6d01d439ab4b",
-          "type": "basic.constant",
-          "data": {
-            "name": "MAX",
-            "value": "5",
-            "local": false
-          },
-          "position": {
-            "x": 448,
-            "y": 312
           }
         },
         {
@@ -254,6 +277,19 @@
           "position": {
             "x": 1768,
             "y": 312
+          }
+        },
+        {
+          "id": "6249ca23-f684-4170-87d6-b79eb3077f45",
+          "type": "basic.constant",
+          "data": {
+            "name": "MAX",
+            "value": "9",
+            "local": false
+          },
+          "position": {
+            "x": -96,
+            "y": 320
           }
         },
         {
@@ -307,7 +343,7 @@
             }
           },
           "position": {
-            "x": -536,
+            "x": -1024,
             "y": 392
           },
           "size": {
@@ -316,10 +352,10 @@
           }
         },
         {
-          "id": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
+          "id": "b1b1866c-1917-412a-8bb2-e83400a87916",
           "type": "basic.code",
           "data": {
-            "code": "reg [3:0] counter = 0;\nreg hasi = 0;\n\nalways @(posedge clk) begin\n   if (counter == MAX) begin\n     counter <= 0;\n     hasi <= 1;\n     end\n   else if (rst ==1) begin\n     counter <= counter+1;\n     hasi <= 0;\n     end\n   \n   if (rst==0) begin\n   counter <= 0;\n     hasi <= 1;\n    end\n    if (pause) begin\n   counter <= counter;\n     hasi <= 0;\n    end\n    end\n\n assign {z3, z2, z1, z0} = counter;\n assign has = hasi;",
+            "code": "// 4 biteko zenbatzailea \n// reset eta pause funtzioak\nreg coun = 0;\nreg counpause = 0;\nreg hasi = 0;\n\nalways @(posedge clk) begin\n    if (rst==0) begin\n     coun<= 0;\n     counpause <= 0;\n     hasi <= 1;\n   end\n   if ((pause==0) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= 0;\n     hasi <= 1;\n   end\n   else if ((pause==0) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= coun+1;\n     hasi <= 0;\n   end\n    if ((pause==1) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= counpause;\n     hasi <= 1;\n   end\n   else if ((pause==1) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= counpause;\n     hasi <= 0;\n   end\n  end\n \n assign has = hasi;\n",
             "params": [
               {
                 "name": "MAX"
@@ -339,6 +375,60 @@
               ],
               "out": [
                 {
+                  "name": "coun",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "counpause",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "has"
+                }
+              ]
+            }
+          },
+          "position": {
+            "x": -248,
+            "y": 432
+          },
+          "size": {
+            "width": 400,
+            "height": 224
+          }
+        },
+        {
+          "id": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
+          "type": "basic.code",
+          "data": {
+            "code": "// Multiplexorea \n// pause funtzioa\nreg [3:0] bal;\n\nalways @(posedge clk) begin\n if (rst ==0) \n bal = c;\n else if (pause ==0) \n        bal = c;\n else if (pause ==1)\n      bal = cp;\n    \nend\n\nassign {z3, z2, z1, z0} = bal;",
+            "params": [],
+            "ports": {
+              "in": [
+                {
+                  "name": "c",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "cp",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "pause"
+                },
+                {
+                  "name": "rst"
+                },
+                {
+                  "name": "clk"
+                }
+              ],
+              "out": [
+                {
                   "name": "z0"
                 },
                 {
@@ -349,16 +439,13 @@
                 },
                 {
                   "name": "z3"
-                },
-                {
-                  "name": "has"
                 }
               ]
             }
           },
           "position": {
-            "x": 296,
-            "y": 440
+            "x": 352,
+            "y": 448
           },
           "size": {
             "width": 400,
@@ -400,7 +487,7 @@
             "clock": false
           },
           "position": {
-            "x": -704,
+            "x": -1192,
             "y": 488
           }
         },
@@ -408,8 +495,8 @@
           "id": "a9c1f645-654d-4bb7-92ff-e1b8e05d3f0c",
           "type": "903e23d5d0f911df7bf3e4317d3833c225d577da",
           "position": {
-            "x": 1144,
-            "y": 504
+            "x": 1240,
+            "y": 488
           },
           "size": {
             "width": 96,
@@ -474,24 +561,24 @@
           }
         },
         {
-          "id": "3aaffee6-5043-42d6-b9bc-e93905add791",
+          "id": "567b1531-2474-48c9-afcc-239f1db69587",
           "type": "basic.constant",
           "data": {
             "name": "MAX",
-            "value": "9",
+            "value": "5",
             "local": false
           },
           "position": {
-            "x": 464,
-            "y": 688
+            "x": -104,
+            "y": 680
           }
         },
         {
           "id": "5fb1f347-8887-4dad-8459-460ff725e3c4",
           "type": "903e23d5d0f911df7bf3e4317d3833c225d577da",
           "position": {
-            "x": 1144,
-            "y": 720
+            "x": 1200,
+            "y": 712
           },
           "size": {
             "width": 96,
@@ -499,10 +586,10 @@
           }
         },
         {
-          "id": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
+          "id": "051a6ca4-e198-4e36-a145-57e054b7009a",
           "type": "basic.code",
           "data": {
-            "code": "reg [3:0] counter = 0;\nreg hasi = 0;\n\nalways @(posedge clk) begin\n   if (counter == MAX) begin\n     counter <= 0;\n     hasi <= 1;\n     end\n   else if (rst ==1) begin\n     counter <= counter+1;\n     hasi <= 0;\n     end\n   \n   if (rst==0) begin\n   counter <= 0;\n     hasi <= 1;\n    end\n    if (pause) begin\n   counter <= counter;\n     hasi <= 0;\n    end\n    end\n\n assign {z3, z2, z1, z0} = counter;\n assign has = hasi;",
+            "code": "// 4 biteko zenbatzailea \n// reset eta pause funtzioak\nreg coun = 0;\nreg counpause = 0;\nreg hasi = 0;\n\nalways @(posedge clk) begin\n    if (rst==0) begin\n     coun<= 0;\n     counpause <= 0;\n     hasi <= 1;\n   end\n   if ((pause==0) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= 0;\n     hasi <= 1;\n   end\n   else if ((pause==0) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= coun+1;\n     hasi <= 0;\n   end\n    if ((pause==1) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= counpause;\n     hasi <= 1;\n   end\n   else if ((pause==1) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= counpause;\n     hasi <= 0;\n   end\n  end\n \n assign has = hasi;\n",
             "params": [
               {
                 "name": "MAX"
@@ -522,16 +609,14 @@
               ],
               "out": [
                 {
-                  "name": "z0"
+                  "name": "coun",
+                  "range": "[3:0]",
+                  "size": 4
                 },
                 {
-                  "name": "z1"
-                },
-                {
-                  "name": "z2"
-                },
-                {
-                  "name": "z3"
+                  "name": "counpause",
+                  "range": "[3:0]",
+                  "size": 4
                 },
                 {
                   "name": "has"
@@ -540,8 +625,8 @@
             }
           },
           "position": {
-            "x": 312,
-            "y": 816
+            "x": -256,
+            "y": 792
           },
           "size": {
             "width": 400,
@@ -549,23 +634,76 @@
           }
         },
         {
-          "id": "011ef91d-3398-4b49-8b72-95621686fdd7",
-          "type": "basic.constant",
+          "id": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
+          "type": "basic.code",
           "data": {
-            "name": "MAX",
-            "value": "5",
-            "local": false
+            "code": "// Multiplexorea \n// pause funtzioa\nreg [3:0] bal;\n\nalways @(posedge clk) begin\n if (rst ==0) \n bal = c;\n else if (pause ==0) \n        bal = c;\n else if (pause ==1)\n      bal = cp;\n    \nend\n\nassign {z3, z2, z1, z0} = bal;",
+            "params": [],
+            "ports": {
+              "in": [
+                {
+                  "name": "c",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "cp",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "pause"
+                },
+                {
+                  "name": "rst"
+                },
+                {
+                  "name": "clk"
+                }
+              ],
+              "out": [
+                {
+                  "name": "z0"
+                },
+                {
+                  "name": "z1"
+                },
+                {
+                  "name": "z2"
+                },
+                {
+                  "name": "z3"
+                }
+              ]
+            }
           },
           "position": {
-            "x": 464,
-            "y": 1072
+            "x": 360,
+            "y": 808
+          },
+          "size": {
+            "width": 400,
+            "height": 224
           }
         },
         {
-          "id": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
+          "id": "7932f045-ec51-4880-914f-be2f7fcc5cbd",
+          "type": "basic.constant",
+          "data": {
+            "name": "MAX",
+            "value": "9",
+            "local": false
+          },
+          "position": {
+            "x": -128,
+            "y": 1016
+          }
+        },
+        {
+          "id": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
           "type": "basic.code",
           "data": {
-            "code": "reg [3:0] counter = 0;\n\n\nalways @(posedge clk) begin\n   if (counter == MAX) begin\n     counter <= 0;\n   \n     end\n   else if (rst ==1) begin\n     counter <= counter+1;\n  \n     end\n   \n   if (rst==0) begin\n   counter <= 0;\n  \n    end\n    if (pause) begin\n   counter <= counter;\n   \n    end\n    end\n\n assign {z3, z2, z1, z0} = counter;\n ",
+            "code": "// 4 biteko zenbatzailea \n// reset eta pause funtzioak\nreg coun = 0;\nreg counpause = 0;\n\nalways @(posedge clk) begin\n     if (rst==0) begin\n     coun<= 0;\n     counpause <= 0;\n   end\n   if ((pause==0) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= 0;\n   end\n   else if ((pause==0) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= coun+1;\n   end\n    if ((pause==1) && (coun == MAX)) begin\n     coun <= 0;\n     counpause <= counpause;\n   end\n   else if ((pause==1) && (rst ==1)) begin\n     coun <= coun+1;\n     counpause <= counpause;\n   end\n  end\n \n\n",
             "params": [
               {
                 "name": "MAX"
@@ -581,6 +719,57 @@
                 },
                 {
                   "name": "pause"
+                }
+              ],
+              "out": [
+                {
+                  "name": "coun",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "counpause",
+                  "range": "[3:0]",
+                  "size": 4
+                }
+              ]
+            }
+          },
+          "position": {
+            "x": -280,
+            "y": 1128
+          },
+          "size": {
+            "width": 400,
+            "height": 224
+          }
+        },
+        {
+          "id": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
+          "type": "basic.code",
+          "data": {
+            "code": "// Multiplexorea \n// pause funtzioa\nreg [3:0] bal;\n\nalways @(posedge clk) begin\n if (rst ==0) \n bal = c;\n else if (pause ==0) \n        bal = c;\n else if (pause ==1)\n      bal = cp;\n    \nend\n\nassign {z3, z2, z1, z0} = bal;",
+            "params": [],
+            "ports": {
+              "in": [
+                {
+                  "name": "c",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "cp",
+                  "range": "[3:0]",
+                  "size": 4
+                },
+                {
+                  "name": "pause"
+                },
+                {
+                  "name": "rst"
+                },
+                {
+                  "name": "clk"
                 }
               ],
               "out": [
@@ -601,7 +790,7 @@
           },
           "position": {
             "x": 312,
-            "y": 1192
+            "y": 1160
           },
           "size": {
             "width": 400,
@@ -816,26 +1005,6 @@
       "wires": [
         {
           "source": {
-            "block": "cb11e83c-137d-486f-ad5b-8440e60021e5",
-            "port": "constant-out"
-          },
-          "target": {
-            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
-            "port": "MAX"
-          }
-        },
-        {
-          "source": {
-            "block": "61019820-0dc8-4428-ace0-52b26d1485be",
-            "port": "b669f922-036a-40e5-b4de-a6809cf99675"
-          },
-          "target": {
-            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
-            "port": "clk"
-          }
-        },
-        {
-          "source": {
             "block": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
             "port": "out"
           },
@@ -932,16 +1101,6 @@
         },
         {
           "source": {
-            "block": "011ef91d-3398-4b49-8b72-95621686fdd7",
-            "port": "constant-out"
-          },
-          "target": {
-            "block": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
-            "port": "MAX"
-          }
-        },
-        {
-          "source": {
             "block": "36dba644-2f4f-480d-a95f-a295d2efa929",
             "port": "constant-out"
           },
@@ -961,7 +1120,7 @@
           },
           "vertices": [
             {
-              "x": 48,
+              "x": -440,
               "y": 104
             }
           ]
@@ -975,76 +1134,6 @@
             "block": "954c1ae1-bcc7-4f3e-be11-c96372ee4dc1",
             "port": "in"
           }
-        },
-        {
-          "source": {
-            "block": "f0adab5b-ba32-4e6d-bf54-6d01d439ab4b",
-            "port": "constant-out"
-          },
-          "target": {
-            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
-            "port": "MAX"
-          },
-          "vertices": []
-        },
-        {
-          "source": {
-            "block": "3aaffee6-5043-42d6-b9bc-e93905add791",
-            "port": "constant-out"
-          },
-          "target": {
-            "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
-            "port": "MAX"
-          },
-          "vertices": []
-        },
-        {
-          "source": {
-            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
-            "port": "has"
-          },
-          "target": {
-            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
-            "port": "clk"
-          },
-          "vertices": [
-            {
-              "x": 632,
-              "y": 296
-            }
-          ]
-        },
-        {
-          "source": {
-            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
-            "port": "has"
-          },
-          "target": {
-            "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
-            "port": "clk"
-          },
-          "vertices": [
-            {
-              "x": 560,
-              "y": 680
-            }
-          ]
-        },
-        {
-          "source": {
-            "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
-            "port": "has"
-          },
-          "target": {
-            "block": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
-            "port": "clk"
-          },
-          "vertices": [
-            {
-              "x": 576,
-              "y": 1056
-            }
-          ]
         },
         {
           "source": {
@@ -1261,8 +1350,8 @@
           },
           "vertices": [
             {
-              "x": 736,
-              "y": 256
+              "x": 768,
+              "y": 296
             }
           ]
         },
@@ -1600,44 +1689,12 @@
             "port": "reset"
           },
           "target": {
-            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
-            "port": "rst"
-          },
-          "vertices": [
-            {
-              "x": 248,
-              "y": 216
-            }
-          ]
-        },
-        {
-          "source": {
-            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
-            "port": "reset"
-          },
-          "target": {
-            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
-            "port": "rst"
-          },
-          "vertices": [
-            {
-              "x": 208,
-              "y": 416
-            }
-          ]
-        },
-        {
-          "source": {
-            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
-            "port": "reset"
-          },
-          "target": {
             "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
             "port": "rst"
           },
           "vertices": [
             {
-              "x": 184,
+              "x": -304,
               "y": 904
             }
           ]
@@ -1653,7 +1710,7 @@
           },
           "vertices": [
             {
-              "x": 152,
+              "x": -336,
               "y": 1272
             }
           ]
@@ -1669,8 +1726,12 @@
           },
           "vertices": [
             {
-              "x": 72,
+              "x": -416,
               "y": 1336
+            },
+            {
+              "x": 272,
+              "y": 1328
             }
           ]
         },
@@ -1685,8 +1746,12 @@
           },
           "vertices": [
             {
-              "x": 88,
+              "x": -400,
               "y": 992
+            },
+            {
+              "x": 320,
+              "y": 952
             }
           ]
         },
@@ -1701,7 +1766,7 @@
           },
           "vertices": [
             {
-              "x": 112,
+              "x": -376,
               "y": 608
             }
           ]
@@ -1717,22 +1782,510 @@
           },
           "vertices": [
             {
-              "x": 128,
+              "x": -360,
               "y": 280
             }
           ]
+        },
+        {
+          "source": {
+            "block": "cb11e83c-137d-486f-ad5b-8440e60021e5",
+            "port": "constant-out"
+          },
+          "target": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "MAX"
+          }
+        },
+        {
+          "source": {
+            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
+            "port": "reset"
+          },
+          "target": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "rst"
+          },
+          "vertices": [
+            {
+              "x": -248,
+              "y": 136
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "d4bd2056-78a5-470c-9f0c-54be57df09cf",
+            "port": "pause"
+          },
+          "target": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "pause"
+          }
+        },
+        {
+          "source": {
+            "block": "6249ca23-f684-4170-87d6-b79eb3077f45",
+            "port": "constant-out"
+          },
+          "target": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "MAX"
+          },
+          "vertices": []
+        },
+        {
+          "source": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "has"
+          },
+          "target": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "clk"
+          },
+          "vertices": [
+            {
+              "x": 24,
+              "y": 288
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
+            "port": "reset"
+          },
+          "target": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "rst"
+          },
+          "vertices": [
+            {
+              "x": -520,
+              "y": 472
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "d4bd2056-78a5-470c-9f0c-54be57df09cf",
+            "port": "pause"
+          },
+          "target": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "pause"
+          }
+        },
+        {
+          "source": {
+            "block": "61019820-0dc8-4428-ace0-52b26d1485be",
+            "port": "b669f922-036a-40e5-b4de-a6809cf99675"
+          },
+          "target": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "clk"
+          }
+        },
+        {
+          "source": {
+            "block": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
+            "port": "out"
+          },
+          "target": {
+            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
+            "port": "clk"
+          }
+        },
+        {
+          "source": {
+            "block": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
+            "port": "out"
+          },
+          "target": {
+            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
+            "port": "clk"
+          },
+          "vertices": [
+            {
+              "x": 216,
+              "y": 48
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
+            "port": "reset"
+          },
+          "target": {
+            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
+            "port": "rst"
+          }
+        },
+        {
+          "source": {
+            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
+            "port": "reset"
+          },
+          "target": {
+            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
+            "port": "rst"
+          },
+          "vertices": [
+            {
+              "x": 248,
+              "y": 424
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "567b1531-2474-48c9-afcc-239f1db69587",
+            "port": "constant-out"
+          },
+          "target": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "MAX"
+          },
+          "vertices": []
+        },
+        {
+          "source": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "has"
+          },
+          "target": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "clk"
+          },
+          "vertices": [
+            {
+              "x": -24,
+              "y": 672
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
+            "port": "reset"
+          },
+          "target": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "rst"
+          }
+        },
+        {
+          "source": {
+            "block": "d4bd2056-78a5-470c-9f0c-54be57df09cf",
+            "port": "pause"
+          },
+          "target": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "pause"
+          }
+        },
+        {
+          "source": {
+            "block": "7932f045-ec51-4880-914f-be2f7fcc5cbd",
+            "port": "constant-out"
+          },
+          "target": {
+            "block": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
+            "port": "MAX"
+          },
+          "vertices": []
+        },
+        {
+          "source": {
+            "block": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
+            "port": "out"
+          },
+          "target": {
+            "block": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
+            "port": "clk"
+          },
+          "vertices": [
+            {
+              "x": 256,
+              "y": 64
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "ea127b10-00c3-4b10-b044-c3fecaf1ce5b",
+            "port": "out"
+          },
+          "target": {
+            "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
+            "port": "clk"
+          },
+          "vertices": [
+            {
+              "x": -280,
+              "y": 1056
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "edbad291-264e-4ee1-8f15-934f6f940b81",
+            "port": "reset"
+          },
+          "target": {
+            "block": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
+            "port": "rst"
+          }
+        },
+        {
+          "source": {
+            "block": "d4bd2056-78a5-470c-9f0c-54be57df09cf",
+            "port": "pause"
+          },
+          "target": {
+            "block": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
+            "port": "pause"
+          },
+          "vertices": [
+            {
+              "x": -320,
+              "y": 1200
+            }
+          ]
+        },
+        {
+          "source": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "has"
+          },
+          "target": {
+            "block": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
+            "port": "clk"
+          }
+        },
+        {
+          "source": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "coun"
+          },
+          "target": {
+            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
+            "port": "c"
+          },
+          "vertices": [
+            {
+              "x": 280,
+              "y": 64
+            }
+          ],
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "c2d4d728-b669-4df1-b0ce-2d0a77873d7c",
+            "port": "counpause"
+          },
+          "target": {
+            "block": "6325f048-e4d0-45e7-8c26-9ec5c7af86da",
+            "port": "cp"
+          },
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "coun"
+          },
+          "target": {
+            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
+            "port": "c"
+          },
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "b1b1866c-1917-412a-8bb2-e83400a87916",
+            "port": "counpause"
+          },
+          "target": {
+            "block": "1a2c4ba8-df6a-461e-abbb-ba34fe67dac0",
+            "port": "cp"
+          },
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "coun"
+          },
+          "target": {
+            "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
+            "port": "c"
+          },
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "051a6ca4-e198-4e36-a145-57e054b7009a",
+            "port": "counpause"
+          },
+          "target": {
+            "block": "df4bcea1-75f4-4cb2-b218-615aecb27ab7",
+            "port": "cp"
+          },
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
+            "port": "coun"
+          },
+          "target": {
+            "block": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
+            "port": "c"
+          },
+          "size": 4
+        },
+        {
+          "source": {
+            "block": "14136ad6-8650-46cb-a8cf-a5c199a970cc",
+            "port": "counpause"
+          },
+          "target": {
+            "block": "68eed0ed-c57d-4cb4-9e7a-b72367069dbc",
+            "port": "cp"
+          },
+          "size": 4
         }
       ]
     },
     "state": {
       "pan": {
-        "x": 453.2495,
-        "y": 123.4279
+        "x": 733.2669,
+        "y": 21.2551
       },
       "zoom": 0.5842
     }
   },
   "dependencies": {
+    "8f9fee0d3423a9b8febade3a93297f29e5e9da4a": {
+      "package": {
+        "name": "Maiztasun zatitzailea M",
+        "version": "1.0",
+        "description": "M maiztasun zatitzailearen balioa sartu M konstantean",
+        "author": "Lorea",
+        "image": ""
+      },
+      "design": {
+        "graph": {
+          "blocks": [
+            {
+              "id": "52378f47-853e-46bb-b0ef-84acc901be83",
+              "type": "basic.constant",
+              "data": {
+                "name": "M",
+                "value": "12_000_000",
+                "local": false
+              },
+              "position": {
+                "x": 528,
+                "y": 72
+              }
+            },
+            {
+              "id": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
+              "type": "basic.code",
+              "data": {
+                "code": "//--M Maiztasun zatitzailea\n\nlocalparam N = $clog2(M);\n\nreg [N-1:0] divcounter = 0;\n\nalways @(posedge clk)\n    if (divcounter == M - 1)\n        divcounter <= 0;\n    else\n        divcounter <= divcounter + 1;\n\nassign clk_out = divcounter[N - 1];",
+                "params": [
+                  {
+                    "name": "M"
+                  }
+                ],
+                "ports": {
+                  "in": [
+                    {
+                      "name": "clk"
+                    }
+                  ],
+                  "out": [
+                    {
+                      "name": "clk_out"
+                    }
+                  ]
+                }
+              },
+              "position": {
+                "x": 384,
+                "y": 216
+              }
+            },
+            {
+              "id": "6b532ccd-59eb-4acc-98ce-a44415d0da81",
+              "type": "basic.input",
+              "data": {
+                "name": "clk"
+              },
+              "position": {
+                "x": 184,
+                "y": 312
+              }
+            },
+            {
+              "id": "b669f922-036a-40e5-b4de-a6809cf99675",
+              "type": "basic.output",
+              "data": {
+                "name": "clk_out"
+              },
+              "position": {
+                "x": 864,
+                "y": 312
+              }
+            }
+          ],
+          "wires": [
+            {
+              "source": {
+                "block": "52378f47-853e-46bb-b0ef-84acc901be83",
+                "port": "constant-out"
+              },
+              "target": {
+                "block": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
+                "port": "M"
+              }
+            },
+            {
+              "source": {
+                "block": "6b532ccd-59eb-4acc-98ce-a44415d0da81",
+                "port": "out"
+              },
+              "target": {
+                "block": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
+                "port": "clk"
+              }
+            },
+            {
+              "source": {
+                "block": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
+                "port": "clk_out"
+              },
+              "target": {
+                "block": "b669f922-036a-40e5-b4de-a6809cf99675",
+                "port": "in"
+              }
+            }
+          ]
+        },
+        "state": {
+          "pan": {
+            "x": -167.525,
+            "y": -74.1416
+          },
+          "zoom": 1.301
+        }
+      }
+    },
     "903e23d5d0f911df7bf3e4317d3833c225d577da": {
       "package": {
         "name": "Mux 4:1",
@@ -1952,123 +2505,6 @@
             "y": 0
           },
           "zoom": 1
-        }
-      }
-    },
-    "8f9fee0d3423a9b8febade3a93297f29e5e9da4a": {
-      "package": {
-        "name": "Maiztasun zatitzailea M",
-        "version": "1.0",
-        "description": "M maiztasun zatitzailearen balioa sartu M konstantean",
-        "author": "Lorea",
-        "image": ""
-      },
-      "design": {
-        "graph": {
-          "blocks": [
-            {
-              "id": "52378f47-853e-46bb-b0ef-84acc901be83",
-              "type": "basic.constant",
-              "data": {
-                "name": "M",
-                "value": "12_000_000",
-                "local": false
-              },
-              "position": {
-                "x": 528,
-                "y": 72
-              }
-            },
-            {
-              "id": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
-              "type": "basic.code",
-              "data": {
-                "code": "//--M Maiztasun zatitzailea\n\nlocalparam N = $clog2(M);\n\nreg [N-1:0] divcounter = 0;\n\nalways @(posedge clk)\n    if (divcounter == M - 1)\n        divcounter <= 0;\n    else\n        divcounter <= divcounter + 1;\n\nassign clk_out = divcounter[N - 1];",
-                "params": [
-                  {
-                    "name": "M"
-                  }
-                ],
-                "ports": {
-                  "in": [
-                    {
-                      "name": "clk"
-                    }
-                  ],
-                  "out": [
-                    {
-                      "name": "clk_out"
-                    }
-                  ]
-                }
-              },
-              "position": {
-                "x": 384,
-                "y": 216
-              }
-            },
-            {
-              "id": "6b532ccd-59eb-4acc-98ce-a44415d0da81",
-              "type": "basic.input",
-              "data": {
-                "name": "clk"
-              },
-              "position": {
-                "x": 184,
-                "y": 312
-              }
-            },
-            {
-              "id": "b669f922-036a-40e5-b4de-a6809cf99675",
-              "type": "basic.output",
-              "data": {
-                "name": "clk_out"
-              },
-              "position": {
-                "x": 864,
-                "y": 312
-              }
-            }
-          ],
-          "wires": [
-            {
-              "source": {
-                "block": "52378f47-853e-46bb-b0ef-84acc901be83",
-                "port": "constant-out"
-              },
-              "target": {
-                "block": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
-                "port": "M"
-              }
-            },
-            {
-              "source": {
-                "block": "6b532ccd-59eb-4acc-98ce-a44415d0da81",
-                "port": "out"
-              },
-              "target": {
-                "block": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
-                "port": "clk"
-              }
-            },
-            {
-              "source": {
-                "block": "e1dedba2-0a10-4ec8-9e9b-c8ffe8d01b9c",
-                "port": "clk_out"
-              },
-              "target": {
-                "block": "b669f922-036a-40e5-b4de-a6809cf99675",
-                "port": "in"
-              }
-            }
-          ]
-        },
-        "state": {
-          "pan": {
-            "x": -167.525,
-            "y": -74.1416
-          },
-          "zoom": 1.301
         }
       }
     },
